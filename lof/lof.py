@@ -15,7 +15,7 @@ class LOF(BaseAnomalyDetector):
         '''
         Predict anomaly scores for dataset X
         '''
-        nbrs = NearestNeighbors(n_neighbors=self.k).fit(A)
+        nbrs = NearestNeighbors(n_neighbors=self.k+1).fit(A)
         distances, indices = nbrs.kneighbors(A)
         indices = indices[:, 1:]
         distances = distances[:, 1:]
@@ -39,6 +39,8 @@ class LOF(BaseAnomalyDetector):
         return(lof)
     
     def fit(self, A=None, y=None):
+        if self.k <= 0 or not isinstance(self.k, int):
+            raise ValueError("k needs to be a positive integer.")
         self.A_ = A
         return self
     
