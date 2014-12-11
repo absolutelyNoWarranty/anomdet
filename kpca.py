@@ -58,8 +58,9 @@ class KPCA(BaseAnomalyDetector):
         '''
         Returns the reconstruction error for KPCA
         '''
+
         n = data.shape[0]
-        
+        N = self.data.shape[0]  # number of data in training
         
         lambda_ = self._kernel_eigvals[:self.n_eigval]
         alpha = self._kernel_eigvecs[:, :self.n_eigval]
@@ -77,10 +78,10 @@ class KPCA(BaseAnomalyDetector):
             proj_on_data = self._z_data_projection(z)
             
             # Projections onto components
-            f = proj_on_data.dot(alpha) - alphaKrow - np.sum(proj_on_data)/n * sumalpha + self._mean_uncentered_K * sumalpha
+            f = proj_on_data.dot(alpha) - alphaKrow - np.sum(proj_on_data)/N * sumalpha + self._mean_uncentered_K * sumalpha
 
             # Spherical Potential
-            s = self._gaussian_kernel(z[None,:], self.sigma) - 2.*np.sum(proj_on_data)/n + self._mean_uncentered_K
+            s = self._gaussian_kernel(z[None,:], self.sigma) - 2.*np.sum(proj_on_data)/N + self._mean_uncentered_K
 
             err[i] = s - f.dot(f)
         

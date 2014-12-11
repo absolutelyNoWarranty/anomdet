@@ -15,9 +15,13 @@ def test_kpca_square():
     Test KPCA with square.dat
     '''
     X = load_square()
-    recerr = KPCA(sigma=0.1, n_eigval=2).fit(X).predict(X)
+    clf = KPCA(sigma=0.1, n_eigval=2).fit(X)
+    recerr = clf.predict(X)
     matlab_recerr = np.loadtxt(os.path.join(HERE, 'square.out'))
     assert_almost_equal(recerr, matlab_recerr, decimal=4)
+    
+    # Also test that individual predictions work
+    assert_almost_equal(clf.predict(X[100:101, :]), matlab_recerr[100], decimal=4)
     
 def test_kpca_square_noise():
     '''
