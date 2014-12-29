@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from .base import BaseAnomalyDetector
+from ..base import BaseAnomalyDetector
 
 from scipy.stats import gaussian_kde
 
