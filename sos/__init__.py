@@ -1,0 +1,1 @@
+from sos_class import StochasticOutlierSelection
