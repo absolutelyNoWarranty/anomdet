@@ -14,15 +14,6 @@ class LOF(BaseAnomalyDetector):
     k : int
         Number of nearest neighbors to use
 
-    Returns
-    -------
-
-    cluster_centers_indices : array, shape (n_clusters,)
-        index of clusters centers
-
-    labels : array, shape (n_samples,)
-        cluster labels for each point
-
     References
     ----------
     Markus M. Breunig, Hans-Peter Kriegel, Raymond T. Ng, and Jörg Sander. 2000. LOF: identifying density-based local outliers. SIGMOD Rec. 29, 2 (May 2000), 93-104. DOI=10.1145/335191.335388 http://doi.acm.org/10.1145/335191.335388
@@ -72,6 +63,3 @@ class LOF(BaseAnomalyDetector):
             raise ValueError("k needs to be a positive integer.")
         self.A_ = A
         return self
-    
-    #def lrd(A, index_p, k_dist, k_index, numneighbors):
-    #    temp = A[index_p, :] - A[k_index[]]
