@@ -21,7 +21,7 @@ class KNN(BaseAnomalyDetector):
     def __init__(self, k):
         self.k = k
     
-    def predict(self, X):
+    def predict(self, X, k=None):
         """Calculate KNN outlier factor for each sample in X
 
         Parameters
@@ -37,8 +37,10 @@ class KNN(BaseAnomalyDetector):
         # If reference_X exists use it, otherwise use X itself
         if self.reference_X is None:
             self.reference_X = X
-        nbrs = NearestNeighbors(n_neighbors=self.k+1).fit(self.reference_X)
-        distances, indices = nbrs.kneighbors(X)
+            self.nbrs = NearestNeighbors(n_neighbors=self.k+1).fit(self.reference_X)
+        if k is None:
+            k = self.k
+        distances, indices = self.nbrs.kneighbors(X, n_neighbors=k+1)
         distances = distances[:, 1:]
         
         return distances.mean(axis=1)
@@ -47,4 +49,9 @@ class KNN(BaseAnomalyDetector):
         if self.k <= 0 or not isinstance(self.k, int):
             raise ValueError("k needs to be a positive integer.")
         self.reference_X = X
+        if X is not None:
+            nbrs = NearestNeighbors(n_neighbors=self.k+1).fit(self.reference_X)
+            self.nbrs = nbrs
+        else:
+            self.nbrs = None
         return self
