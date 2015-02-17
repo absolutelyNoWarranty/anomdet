@@ -64,7 +64,7 @@ def combine_scores(matrix_of_scores, method='avg', **kwargs):
         ensemble_indices = kwargs.get('ensemble_indices', False)
         m, t = matrix_of_scores.shape
         
-        # Create "target" vector (NOT used as the actually result)
+        # Create "target" vector (NOT used as the actual result)
         top_k_union = np.unique(np.argsort(-matrix_of_scores, axis=0)[:k])
         target_vec = np.zeros(m)
         target_vec[top_k_union] = 1
