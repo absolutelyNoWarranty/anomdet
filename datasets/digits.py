@@ -1,10 +1,11 @@
 import os
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 import numpy as np
 from sklearn.utils import check_random_state
 import matplotlib.pyplot as plt
 from sklearn.metrics import roc_auc_score
 from PIL import Image
+from sklearn.datasets.base import Bunch
 
 _digits_X, _digits_y = None, None
 
@@ -75,8 +76,9 @@ def load_digits_data(n_samples_per_class=None, random_state=None):
     '''
     Returns digits data.
     Input:
-        `n_samples_per_class` : list or int
-            a list of the number of samples to return per class
+        `n_samples_per_class` : list or int or dict
+            a list of the number of samples to return per class, 
+            or a dict specifying the number of samples for each digit (those not included are 0)
             or, if a int, returns that number of samples for each class
     Output: Data X and labels y
     '''
@@ -89,6 +91,12 @@ def load_digits_data(n_samples_per_class=None, random_state=None):
     if isinstance(n_samples_per_class, int):
         n_samples_per_class = [n_samples_per_class] * 10
     
+    if isinstance(n_samples_per_class, dict):
+        tmp = []
+        for i in range(10):
+            tmp.append(n_samples_per_class.get(i, 0))
+        n_samples_per_class = tmp
+        
     all_X, all_y = load_digits_kaggle()
     
     ind = get_subsample_indices(range(10), all_y, select=n_samples_per_class, random_state=random_state)
@@ -99,12 +107,36 @@ def load_digits_data(n_samples_per_class=None, random_state=None):
     return (X, y)
 
 
-def benchmark_digits(models, metric=None, n_iter=1, num_train_samples=1000, num_test_samples=1000, anomaly_ratio=0.05, random_state=None, single_digit_as_normal=True):
+def benchmark_digits(models, metric=None, n_iter=1, num_train_samples=1000, num_test_samples=1000, anomaly_ratio=0.05, random_state=None, single_digit_as_normal=True, mode="train_test", return_data=False):
+    '''
+    mode : 1, or "train_test", "dirty_train" - training set has anomalies
+    2, or "one_class" or "clean_train" - training set has no anomalies
+    3, "unsupervised" - no training set
+    
+    0, generate and return data for the first iteration, don't run anything
+    '''
+
+    if models==None or len(models)==0:
+        models = dict()
+        return_data=True
+    
+    if mode == 1 or mode == "train_test" or mode == "dirty_train":
+        mode = 1
+    elif mode == 2 or mode == "one_class" or mode == "clean_train":
+        mode = 2
+    elif mode == 3 or mode == "unsupervised":
+        mode = 3
+    else:
+        raise Exception("Missing mode")
     
     if metric is None:
         metric = roc_auc_score
         
     random_state = check_random_state(random_state)
+    
+    #Random states for selecting train/test datasets
+    rs_train = check_random_state(random_state.randint(1000))
+    rs_test = check_random_state(random_state.randint(1000))
     
     for _, model in models.iteritems():
         seed = random_state.randint(1000)
@@ -115,17 +147,27 @@ def benchmark_digits(models, metric=None, n_iter=1, num_train_samples=1000, num_
         except AttributeError:
             pass
     
-    n_train_normal = int(num_train_samples * (1.0 - anomaly_ratio))
-    n_train_anomaly = num_train_samples - n_train_normal
     
+    if mode == 0:
+        n_iter = 1
+        n_train_normal = int(num_train_samples * (1.0 - anomaly_ratio))
+        n_train_anomaly = num_train_samples - n_train_normal
+    elif mode == 1:
+        n_train_normal = int(num_train_samples * (1.0 - anomaly_ratio))
+        n_train_anomaly = num_train_samples - n_train_normal
+    elif mode == 2:
+        n_train_normal = num_train_samples
+        n_train_anomaly = 0
+        
     n_test_normal = int(num_test_samples * (1.0 - anomaly_ratio))
     n_test_anomaly = num_test_samples - n_test_normal
     
     all_X, all_y = load_digits_kaggle()
     
     perf_scores = defaultdict(list)
-    train_data = []
-    test_data = []
+    if return_data: # Collect train and test data and return
+        train_data = []
+        test_data = []
     all_preds = defaultdict(list)
     for experiment_iter in range(n_iter):
         for i in range(10):
@@ -135,8 +177,9 @@ def benchmark_digits(models, metric=None, n_iter=1, num_train_samples=1000, num_
                 #binary_y
                 bin_y = all_y != normal_class; classes = [True, False]
                 
-                train_ind = get_subsample_indices(classes, bin_y, select=[n_train_anomaly, n_train_normal], random_state=random_state)
-                test_ind = get_subsample_indices(classes, bin_y, select=[n_test_anomaly, n_test_normal], random_state=random_state)
+                train_ind = get_subsample_indices(classes, bin_y, select=[n_train_anomaly, n_train_normal], random_state=rs_train)
+                
+                test_ind = get_subsample_indices(classes, bin_y, select=[n_test_anomaly, n_test_normal], random_state=rs_test)
             
             else: # digit i is the anomaly class, stratify sample from other classes to get normal class
                 anomaly_class = i
@@ -148,8 +191,8 @@ def benchmark_digits(models, metric=None, n_iter=1, num_train_samples=1000, num_
                     select[i_] += 1
                     
                 select[i] = n_train_anomaly
-                train_ind = get_subsample_indices(range(10), all_y, select=select, random_state=random_state)
-                
+                train_ind = get_subsample_indices(range(10), all_y, select=select, random_state=rs_train)
+                #import pdb;pdb.set_trace()
                 select = [int(n_test_normal/9)] * 10
                 for i_ in range(n_test_normal%9):
                     if i == i_:
@@ -157,7 +200,7 @@ def benchmark_digits(models, metric=None, n_iter=1, num_train_samples=1000, num_
                     select[i_] += 1
                     
                 select[i] = n_test_anomaly
-                test_ind = get_subsample_indices(range(10), all_y, select=select, random_state=random_state)
+                test_ind = get_subsample_indices(range(10), all_y, select=select, random_state=rs_test)
             
                 #binary_y
                 bin_y = all_y == anomaly_class
@@ -172,20 +215,29 @@ def benchmark_digits(models, metric=None, n_iter=1, num_train_samples=1000, num_
             assert sum(y_train) == n_train_anomaly
             assert sum(y_test) == n_test_anomaly
         
-            train_data.append((X_train, y_train))
-            test_data.append((X_test, y_test))
-            
+            if return_data:
+                train_data.append((X_train, y_train))
+                test_data.append((X_test, y_test))
+                
             for name, model in models.iteritems():
-                model.fit(X_train, y_train)
+                if mode != 3:
+                    model.fit(X_train, y_train)
                 preds = model.predict(X_test)
                 perf_scores[name].append(metric(y_test, preds))
                 all_preds[name].append(preds)
-            #models.append(model)
-    
-    return dict(performance_scores=perf_scores,
-                train_data=train_data,
-                test_data=test_data,
-                all_preds=all_preds)
+
+    avg_perf_scores = OrderedDict()
+    for name in models.iterkeys():
+        avg_perf_scores[name] = np.array(perf_scores[name]).reshape(n_iter, 10).mean(axis=0)
+
+    if return_data:
+        return Bunch(train_data=train_data,
+                     test_data=test_data)
+                    
+
+    return Bunch(performance_scores=perf_scores,
+                 avg_perf_scores=avg_perf_scores,
+                 all_preds=all_preds)
 
     
 def benchmark_digits1(model, metric, n_iter=1, num_train_samples=1000, num_test_samples=1000, anomaly_ratio=0.05, random_state=None):
