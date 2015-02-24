@@ -12,6 +12,8 @@ def combine_scores(matrix_of_scores, method='avg', **kwargs):
     
     if method == 'avg':
         return matrix_of_scores.mean(axis=1)
+    elif method == 'prod':
+        return matrix_of_scores.prod(axis=1)
     elif method == 'median_rank':
         rankings = np.median(matrix_of_rankings, axis=1)
         return rankings
