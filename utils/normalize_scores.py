@@ -16,8 +16,9 @@ def normalize_scores(X, method='uniform'):
     '''
     
     if method == 'uniform':
-        mins = np.min(X, axis=0)
-        maxs = np.max(X, axis=0)
+        # ignore nans
+        mins = np.nanmin(X, axis=0)
+        maxs = np.nanmax(X, axis=0)
         ranges = maxs-mins
         zero = np.where(ranges == 0.)[0]
         if len(zero):
