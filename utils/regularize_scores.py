@@ -1,3 +1,5 @@
+import numpy as np
+
 def regularize_scores(x, baseline, inversion_type=None):
     '''
     Regularize anomaly scores
