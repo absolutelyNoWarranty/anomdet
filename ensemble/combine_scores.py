@@ -11,7 +11,12 @@ def combine_scores(matrix_of_scores, method='avg', **kwargs):
     matrix_of_rankings = np.argsort(np.argsort(matrix_of_scores, axis=0), axis=0) # larger is more anomalous, so 0 is least anomalous and n is most
     
     if method == 'avg':
-        return matrix_of_scores.mean(axis=1)
+        ret = matrix_of_scores.mean(axis=1)
+        wrong = np.where(np.logical_or(np.isnan(ret), np.isinf(ret)))[0]
+        for i in wrong:
+            bad = np.logical_or(np.isnan(matrix_of_scores[i, :]), np.isinf(matrix_of_scores[i, :]))
+            ret[i] = np.mean(matrix_of_scores[i, np.logical_not(bad)])
+        return ret
     elif method == 'prod':
         return matrix_of_scores.prod(axis=1)
     elif method == 'median_rank':
@@ -95,19 +100,19 @@ def combine_scores(matrix_of_scores, method='avg', **kwargs):
             i = detectors_[np.argmin(corrs)]
             
             # Decide whether to add this detector to the ensemble
-            curr_ensemble_scores = np.mean(matrix_of_scores[:, in_ensemble], axis=1)
-            curr_ensemble_corr_with_target = weighted_pearson_correlation(target_vec, curr_ensemble_scores, w)
+            curr_ensemble_output = combine_scores(matrix_of_scores[:, in_ensemble], method='avg')
+            curr_ensemble_corr_with_target = weighted_pearson_correlation(target_vec, curr_ensemble_output, w)
             in_ensemble[i] = True
-            new_ensemble_scores = np.mean(matrix_of_scores[:, in_ensemble], axis=1)
-            new_ensemble_corr_with_target = weighted_pearson_correlation(target_vec, new_ensemble_scores, w)
+            new_ensemble_output = combine_scores(matrix_of_scores[:, in_ensemble], method='avg')
+            new_ensemble_corr_with_target = weighted_pearson_correlation(target_vec, new_ensemble_output, w)
             if new_ensemble_corr_with_target <= curr_ensemble_corr_with_target:
                 in_ensemble[i] = False
             
             detectors.discard(i)
         
         if ensemble_indices:
-            return (np.mean(matrix_of_scores[:, in_ensemble], axis=1), in_ensemble)
+            return (combine_scores(matrix_of_scores[:, in_ensemble], method='avg'), in_ensemble)
         else:
-            return np.mean(matrix_of_scores[:, in_ensemble], axis=1)
+            return combine_scores(matrix_of_scores[:, in_ensemble], method='avg')
     else:
         raise Exception("Unknown method")
