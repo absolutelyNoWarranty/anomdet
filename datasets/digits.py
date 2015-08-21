@@ -177,21 +177,22 @@ def benchmark_digits(models, metric=None, n_iter=1, num_train_samples=1000, num_
                 #binary_y
                 bin_y = all_y != normal_class; classes = [True, False]
                 
-                train_ind = get_subsample_indices(classes, bin_y, select=[n_train_anomaly, n_train_normal], random_state=rs_train)
+                if mode != 3:
+                    train_ind = get_subsample_indices(classes, bin_y, select=[n_train_anomaly, n_train_normal], random_state=rs_train)
                 
                 test_ind = get_subsample_indices(classes, bin_y, select=[n_test_anomaly, n_test_normal], random_state=rs_test)
             
             else: # digit i is the anomaly class, stratify sample from other classes to get normal class
                 anomaly_class = i
-                
-                select = [int(n_train_normal/9)] * 10
-                for i_ in range(n_train_normal%9):
-                    if i == i_:
-                        select[-1] += 1
-                    select[i_] += 1
-                    
-                select[i] = n_train_anomaly
-                train_ind = get_subsample_indices(range(10), all_y, select=select, random_state=rs_train)
+                if mode!=3:
+                    select = [int(n_train_normal/9)] * 10
+                    for i_ in range(n_train_normal%9):
+                        if i == i_:
+                            select[-1] += 1
+                        select[i_] += 1
+                        
+                    select[i] = n_train_anomaly
+                    train_ind = get_subsample_indices(range(10), all_y, select=select, random_state=rs_train)
                 #import pdb;pdb.set_trace()
                 select = [int(n_test_normal/9)] * 10
                 for i_ in range(n_test_normal%9):
@@ -205,18 +206,22 @@ def benchmark_digits(models, metric=None, n_iter=1, num_train_samples=1000, num_
                 #binary_y
                 bin_y = all_y == anomaly_class
 
-            X_train = all_X[train_ind]
+            if mode != 3:
+                X_train = all_X[train_ind]
+                y_train = bin_y[train_ind]
+                assert len(y_train) == num_train_samples
+                assert sum(y_train) == n_train_anomaly
+
             X_test = all_X[test_ind]
-            y_train = bin_y[train_ind]
             y_test = bin_y[test_ind]
         
-            assert len(y_train) == num_train_samples
+            
             assert len(y_test) == num_test_samples
-            assert sum(y_train) == n_train_anomaly
             assert sum(y_test) == n_test_anomaly
         
             if return_data:
-                train_data.append((X_train, y_train))
+                if mode != 3:
+                    train_data.append((X_train, y_train))
                 test_data.append((X_test, y_test))
                 
             for name, model in models.iteritems():
@@ -230,15 +235,21 @@ def benchmark_digits(models, metric=None, n_iter=1, num_train_samples=1000, num_
     for name in models.iterkeys():
         avg_perf_scores[name] = np.array(perf_scores[name]).reshape(n_iter, 10).mean(axis=0)
 
+    ret_res = Bunch()
+    
+    if mode != 0 and models:
+        ret_res['performance_scores'] = perf_scores
+        ret_res['avg_perf_scores'] = avg_perf_scores
+        ret_res['all_preds'] = all_preds
+    
     if return_data:
-        return Bunch(train_data=train_data,
-                     test_data=test_data)
+        if mode != 3:
+            ret_res['train_data'] = train_data
+        else:
+            ret_res['train_data'] = None
+        ret_res['test_data'] = test_data
                     
-
-    return Bunch(performance_scores=perf_scores,
-                 avg_perf_scores=avg_perf_scores,
-                 all_preds=all_preds)
-
+    return ret_res
     
 def benchmark_digits1(model, metric, n_iter=1, num_train_samples=1000, num_test_samples=1000, anomaly_ratio=0.05, random_state=None):
     
