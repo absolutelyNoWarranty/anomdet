@@ -227,6 +227,8 @@ def benchmark_digits(models, metric=None, n_iter=1, num_train_samples=1000, num_
             for name, model in models.iteritems():
                 if mode != 3:
                     model.fit(X_train, y_train)
+                else:
+                    model.fit(X_test, y=None)
                 preds = model.predict(X_test)
                 perf_scores[name].append(metric(y_test, preds))
                 all_preds[name].append(preds)
