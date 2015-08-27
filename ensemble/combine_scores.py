@@ -95,12 +95,13 @@ def combine_scores(matrix_of_scores, method='avg', **kwargs):
         while detectors:
             detectors_ = list(detectors)
             
+            curr_ensemble_output = combine_scores(matrix_of_scores[:, in_ensemble], method='avg')
+           
             # Find detector with lowest correlation to the current ensemble
-            corrs= [weighted_pearson_correlation(target_vec, matrix_of_scores[:, j], w) for j in detectors_]
+            corrs= [weighted_pearson_correlation(curr_ensemble_output, matrix_of_scores[:, j], w) for j in detectors_]
             i = detectors_[np.argmin(corrs)]
             
             # Decide whether to add this detector to the ensemble
-            curr_ensemble_output = combine_scores(matrix_of_scores[:, in_ensemble], method='avg')
             curr_ensemble_corr_with_target = weighted_pearson_correlation(target_vec, curr_ensemble_output, w)
             in_ensemble[i] = True
             new_ensemble_output = combine_scores(matrix_of_scores[:, in_ensemble], method='avg')
