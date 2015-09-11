@@ -14,21 +14,29 @@ class IForest(BaseAnomalyDetector):
     .. [2] Liu, F.T.; Kai Ming Ting; Zhi-Hua Zhou, "On Detecting Clustered Anomalies Using SCiForest," ECML 2010.
 
     """
-    def __init__(self, num_trees, subsample_size):
-        self.t = num_trees
+    
+    def __init__(self, num_trees=20, subsample_size=0.25, height_limit=None):
+        self.num_trees = num_trees
         self.subsample_size = subsample_size
         self.trees = []
+        self.height_limit = height_limit
         
     def fit(self, X, y=None):
-        psi = self.subsample_size
-        height_limit = np.ceil(np.log2(psi))
+        m = X.shape[0]
+        if self.subsample_size <= 1.0:
+            psi = int(np.ceil(self.subsample_size * m))
+        else:
+            psi = self.subsample_size
+        if self.height_limit is None:
+            self.height_limit = np.ceil(np.log2(psi))
         numdata = X.shape[0]
         trees = []
-        for i in range(self.t):
+        for i in range(self.num_trees):
             sample_ind = np.random.permutation(numdata)[:psi]
             X_sample = X[sample_ind, :]
-            trees.append(ITree(height_limit=height_limit).fit(X_sample))
+            trees.append(ITree(height_limit=self.height_limit).fit(X_sample))
         self.trees = trees
+        self.psi = psi
         return self
         
     def predict(self, X):
@@ -40,7 +48,7 @@ class IForest(BaseAnomalyDetector):
                 path_length, leaf_size = tree.path_length_and_leaf_size(x)
                 scores[i] += path_length + _adjustment(leaf_size)
         
-        scores = 2**(-scores / len(self.trees) / _adjustment(self.subsample_size))
+        scores = 2**(-scores / len(self.trees) / _adjustment(self.psi))
         return scores
         
 def _adjustment(n):
