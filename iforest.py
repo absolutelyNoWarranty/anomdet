@@ -3,6 +3,7 @@
 from .base import BaseAnomalyDetector
 
 import numpy as np
+from sklearn.utils import check_random_state
 
 class IForest(BaseAnomalyDetector):
     """IForest and SCIForest
@@ -15,13 +16,16 @@ class IForest(BaseAnomalyDetector):
 
     """
     
-    def __init__(self, num_trees=20, subsample_size=0.25, height_limit=None):
+    def __init__(self, num_trees=20, subsample_size=0.25, height_limit=None, random_state=None):
         self.num_trees = num_trees
         self.subsample_size = subsample_size
         self.trees = []
         self.height_limit = height_limit
+        self.random_state = random_state
         
     def fit(self, X, y=None):
+        random_state = check_random_state(self.random_state)
+        
         m = X.shape[0]
         if self.subsample_size <= 1.0:
             psi = int(np.ceil(self.subsample_size * m))
@@ -32,9 +36,9 @@ class IForest(BaseAnomalyDetector):
         numdata = X.shape[0]
         trees = []
         for i in range(self.num_trees):
-            sample_ind = np.random.permutation(numdata)[:psi]
+            sample_ind = random_state.permutation(numdata)[:psi]
             X_sample = X[sample_ind, :]
-            trees.append(ITree(height_limit=self.height_limit).fit(X_sample))
+            trees.append(ITree(height_limit=self.height_limit, random_state=random_state).fit(X_sample))
         self.trees = trees
         self.psi = psi
         return self
@@ -65,9 +69,10 @@ class ITree(object):
     An ITree is constructed out of ITreeNode's and ITreeLeaf's
     """
     
-    def __init__(self, height_limit, root=None):
+    def __init__(self, height_limit, root=None, random_state=None):
         self.height_limit = height_limit
         self.root = None
+        self.random_state = random_state
         
     def fit(self, X):
         '''
@@ -98,10 +103,10 @@ class ITree(object):
         if current_height >= height_limit or m <= 1:
             tree = ITreeLeaf(m)
         else:
-            split_att = np.random.randint(n)
+            split_att = self.random_state.randint(n)
             a = min(X[:, split_att])
             b = max(X[:, split_att])
-            split_value = a + (b-a)*np.random.random()
+            split_value = a + (b-a)*self.random_state.random_sample()
             
             X_left = X[X[:, split_att] < split_value]
             X_right = X[X[:, split_att] >= split_value]
