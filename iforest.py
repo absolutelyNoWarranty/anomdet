@@ -40,12 +40,14 @@ class IForest(BaseAnomalyDetector):
                 path_length, leaf_size = tree.path_length_and_leaf_size(x)
                 scores[i] += path_length + _adjustment(leaf_size)
         
-        scores = 2**(-scores / len(self.trees) / _adjustment(m))
+        scores = 2**(-scores / len(self.trees) / _adjustment(self.subsample_size))
         return scores
         
 def _adjustment(n):
         if n<=1:
             value = 0
+        elif n == 2:
+            value = 1
         else:
             value = 2 * (np.log(n-1)+0.5772156649) - 2*(n-1) / n;
         return value
