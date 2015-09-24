@@ -1,5 +1,5 @@
 import os
-from collections import defaultdict, OrderedDict
+from collections import namedtuple, defaultdict, OrderedDict
 import numpy as np
 from sklearn.utils import check_random_state
 import matplotlib.pyplot as plt
@@ -104,7 +104,7 @@ def load_digits_data(n_samples_per_class=None, random_state=None):
     X = all_X[ind]
     y = all_y[ind]
     
-    return (X, y)
+    return namedtuple('Dataset', ['X', 'y'])(X, y)
 
 
 def benchmark_digits(models, metric=None, n_iter=1, num_train_samples=1000, num_test_samples=1000, anomaly_ratio=0.05, random_state=None, single_digit_as_normal=True, mode="train_test", return_data=False):
