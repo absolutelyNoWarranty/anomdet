@@ -12,7 +12,7 @@ def dist_to_col_space(A, b):
     try:
         p = proj_column_space(A, b)
         return np.linalg.norm(p - b)
-    except LinAlgError:
+    except LinAlgError:  # singular matrix, then use Method of Least Squares
         return np.sqrt(np.linalg.lstsq(A, b))[0]
         
 def col_space_feature_selection(A, delta):
