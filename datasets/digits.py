@@ -7,6 +7,8 @@ from sklearn.metrics import roc_auc_score
 from PIL import Image
 from sklearn.datasets.base import Bunch
 
+from .utils import get_subsample_indices
+
 _digits_X, _digits_y = None, None
 
 def _create_digits_kaggle_memmap():
@@ -46,31 +48,6 @@ def load_digits_kaggle(filepath=None, cache=True, use_memmap=True):
         y = data[:, 0].astype(int)
         del data
     return (X, y)
-
-def get_subsample_indices(classes, y, select, replace=False, random_state=None):
-    '''
-    Returns indices which can be used to subsample a dataset X.
-    Input:
-        `y` - the class labels of X
-        `select` - the number to select from each class
-        `replace` - whether to sample with replacement or without
-            default: False
-    '''
-    
-    random_state = check_random_state(random_state)
-    
-    result = []
-    #classes = np.unique(y)
-    for num_to_select, class_ in zip(select, classes):
-        indices = np.where(y==class_)[0]
-        result.append(random_state.choice(indices, num_to_select, replace=replace))
-    result = np.concatenate(result)
-    
-    # Randomize the order of the indices to prevent strange things from happening
-    n = len(result)
-    result = result[random_state.choice(n, n, replace=False)]
-    
-    return result
     
 def load_digits_data(n_samples_per_class=None, random_state=None):
     '''
