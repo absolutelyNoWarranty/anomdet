@@ -11,8 +11,10 @@ class IForest(BaseAnomalyDetector):
     ----------
 
     .. [1] Liu, F.T.; Kai Ming Ting; Zhi-Hua Zhou, "Isolation Forest," Data Mining, 2008.
+    
+    .. [2] Fei Tony Liu, Kai Ming Ting, and Zhi-Hua Zhou. 2012. Isolation-Based Anomaly Detection. ACM Trans. Knowl. Discov. Data 6, 1, Article 3 (March 2012), 39 pages. DOI=10.1145/2133360.2133363 http://doi.acm.org/10.1145/2133360.2133363 (longer version of [1])
 
-    .. [2] Liu, F.T.; Kai Ming Ting; Zhi-Hua Zhou, "On Detecting Clustered Anomalies Using SCiForest," ECML 2010.
+    .. [3] Liu, F.T.; Kai Ming Ting; Zhi-Hua Zhou, "On Detecting Clustered Anomalies Using SCiForest," ECML 2010.
 
     """
     
