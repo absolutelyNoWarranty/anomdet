@@ -25,9 +25,8 @@ class LOCI(BaseAnomalyDetector):
     S. Papadimitriou, H. Kitagawa, P. B. Gibbons "LOCI: Fast Outlier Detection Using the Local Correlation Integral"
     """
     
-    def __init__(self, n_min=20, n_max=100, alpha=0.5):
-        self.n_min = n_min
-        self.n_max = 100
+    def __init__(self, n_max=100, alpha=0.5):
+        self.n_max = n_max
         self.alpha = alpha
     
     def fit(self, X=None, y=None):
@@ -46,8 +45,6 @@ class LOCI(BaseAnomalyDetector):
         lof : array, shape (n_samples,)
             Local outlier factor for each sample.
         """
-        # Simple error checking
-        assert self.n_max > self.n_min
         
         nbrs = NearestNeighbors(n_neighbors=self.n_max).fit(X)
         distances, indices = nbrs.kneighbors(X)
@@ -56,29 +53,29 @@ class LOCI(BaseAnomalyDetector):
         
         k_sigma = []
         for i in xrange(num_rows):
-            # start at self.n_min
-            n_ = self.n_min+1 # plus 1 to avoid self
             max_zscore_mdef = -np.inf
-            for r in distances[i, n_:]:
-                n = len(nbrs.radius_neighbors(X[i], self.alpha*r, return_distance=False)[0])
-                #n_hat = 0.
-                #for ind in indices[n_]:
-                #    n_hat += len(nbrs.radius_neighbors(X[i], self.alpha*r))
-                #n_hat /= len(indices[n_])
+            for j in range(0, distances.shape[1]):
+                r = distances[i, j]
                 
-                neighborhood_n = [len(nbrs.radius_neighbors(X[ind], self.alpha*r, return_distance=False)[0]) for ind in indices[n_]]
-                
+                n = np.sum(distances[i] <=  self.alpha*r)
+                # note that indices[i] includes i
+                # indices[i, :(j+1)] => j+1 neighbors of point i (point i plus additional j neighbors)
+                # distances[...] the neighbor distances for point i and point i's j neighbors
+                # neighborhood_n => counts for the neighborhood size of each of the points in point i's neighborhood
+                neighborhood_n = (distances[indices[i, :(j+1)]] <= self.alpha*r).sum(axis=1)
+                n = neighborhood_n[0]
                 n_hat = np.mean(neighborhood_n)
                 sigma = np.std(neighborhood_n)
                 
                 mdef = (n_hat - n) / n_hat
                 sigma_mdef = sigma/n_hat
-                
-                ##mdef.append(mdef_i)
-                ##sigma_mdef_i.append(sigma_mdef_i)
-                
-                zscore_mdef = mdef / sigma_mdef #k_sigma in paper
-                #import pdb;pdb.set_trace()
+                          
+                #k_sigma in paper
+                if mdef < 1e-16:
+                    zscore_mdef = 0.0
+                else:
+                    zscore_mdef = mdef / sigma_mdef
+
                 if max_zscore_mdef < zscore_mdef:
                     max_zscore_mdef = zscore_mdef
                     
