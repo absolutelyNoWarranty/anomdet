@@ -30,7 +30,7 @@ class LOCI(BaseAnomalyDetector):
         self.alpha = alpha
     
     def fit(self, X=None, y=None):
-        pass
+        return self
     
     def predict(self, X):
         """Calculate MDEF vs sigma_mdef for each sample in X
