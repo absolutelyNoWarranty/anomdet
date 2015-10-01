@@ -44,7 +44,7 @@ def get_subsample_indices(classes, y, select, replace=False, random_state=None):
     # Mix up the order of the indices to prevent user from accidently relying 
     # on an implicit ordering of the sample with regard to the classes
     n = len(result)
-    result = result[np.random.choice(n, n, replace=False)]
+    result = result[random_state.choice(n, n, replace=False)]
     
     return result
 
