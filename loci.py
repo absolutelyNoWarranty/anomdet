@@ -51,7 +51,7 @@ class LOCI(BaseAnomalyDetector):
         
         num_rows = X.shape[0]
         
-        k_sigma = []
+        k_sigma = np.empty(num_rows)
         for i in xrange(num_rows):
             max_zscore_mdef = -np.inf
             for j in range(0, distances.shape[1]):
@@ -80,6 +80,6 @@ class LOCI(BaseAnomalyDetector):
                     max_zscore_mdef = zscore_mdef
                     
 
-            k_sigma.append(max_zscore_mdef)
+            k_sigma[i] = max_zscore_mdef
             
         return k_sigma
