@@ -1,6 +1,6 @@
 import numpy as np
 from CondensedDistanceMatrix import pdist_wrapper, CondensedDistanceMatrix
-from normalize_scores import normalize_scores
+from normalize_scores import normalize_scores, replace_invalid_scores
 from regularize_scores import regularize_scores
 
 def unique_rows(ar, *args, **kwargs):
