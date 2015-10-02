@@ -8,6 +8,8 @@ import pandas as pd
 
 from sklearn.metrics import roc_auc_score
 
+from anomdet.utils import replace_invalid_scores
+
 THIS_DIR = os.path.dirname(os.path.abspath(__file__)) # absolute path to directory this source file is in
 
 column_names = ["duration",
@@ -161,6 +163,7 @@ def benchmark_darpa(models, attack_types='all', metric=None):
             X = X.iloc[:, :-1].values
             model.fit(X, None)
             preds = model.predict(X)
+            preds = replace_invalid_scores(preds)
             perf_scores[name].append(metric(y, preds))
     
     return perf_scores
