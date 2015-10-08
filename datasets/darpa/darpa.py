@@ -151,7 +151,7 @@ def benchmark_darpa(models, attack_types='all', metric=None):
     elif attack_types in ["dos", "u2r", "r2l", "probe"]:
         attacks_to_load = d[attack_types]
     elif attack_types in attacks:
-        attacks_to_load = [attack_type]
+        attacks_to_load = [attack_types]
     else:
         raise Exception("Not a valid attack type")
     
