@@ -6,7 +6,37 @@ import numpy as np
 from sklearn.utils import check_random_state
 
 class IForest(BaseAnomalyDetector):
-    """IForest and SCIForest
+    """Isolation Forest
+    
+    Detect anomalies using a forest of space-partitioning trees to measure, on
+    average, the ease with which a point can be isolated from a random sample 
+    of the data.
+    
+    Parameters
+    ----------
+    `num_tree' : int, optional (default=20)
+        The number of trees to construct.
+    
+    `subsample_size' : int or float, optional (default=0.25)
+        The size of the random samples of the input data which are used to
+        build the trees.
+          - If int, then sample `subsample_size' number of data points.
+          - If float, then `subsample_size' should be in the range (0, 1) and
+            sample ceil(`subsample_size' * m) points where m is the number of
+            data points.
+     
+    `height_limit' : int or None, optional (default=None)
+        The maximum height of a tree, equivalent to the maximum number of
+        splits. Should be non-negative. 
+        If None, the maximum height will be set to np.ceil(np.log2(psi)) where
+        psi is the sample size as determined by `subsample_size'.
+        
+    `random_state' : int, RandomState instance or None, optional (default=None)
+        If int, random_state is the seed used by the random number generator;
+        If RandomState instance, random_state is the random number generator;
+        If None, the random number generator is the RandomState instance used
+        by `np.random`.        
+        
     References
     ----------
 
