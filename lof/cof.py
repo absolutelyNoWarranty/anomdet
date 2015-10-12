@@ -12,18 +12,8 @@ class COF(BaseAnomalyDetector):
 
     Parameters
     ----------
-
-    k : int
+    `k' : int
         Number of nearest neighbors to use
-
-    Returns
-    -------
-
-    cluster_centers_indices : array, shape (n_clusters,)
-        index of clusters centers
-
-    labels : array, shape (n_samples,)
-        cluster labels for each point
 
     References
     ----------
@@ -34,12 +24,18 @@ class COF(BaseAnomalyDetector):
     def __init__(self, k):
         self.k = k
     
-    def predict(self, A):
-        """Calculate connectivity-based outlier factor for each sample in A
+    def fit(self, X=None, y=None):
+        if self.k <= 0 or not isinstance(self.k, int):
+            raise ValueError("k needs to be a positive integer.")
+        self.X_ = X
+        return self
+        
+    def predict(self, X):
+        """Calculate connectivity-based outlier factor for each sample in X
 
         Parameters
         ----------
-        A : array-like, shape (n_samples, n_features)
+        X : array-like, shape (n_samples, n_features)
             New data to predict.
 
         Returns
@@ -48,19 +44,19 @@ class COF(BaseAnomalyDetector):
             Connectivity-based outlier factor for each sample.
         """
         
-        nbrs = NearestNeighbors(n_neighbors=self.k+1).fit(A)
-        distances, indices = nbrs.kneighbors(A)
+        nbrs = NearestNeighbors(n_neighbors=self.k+1).fit(X)
+        distances, indices = nbrs.kneighbors(X)
         indices = indices[:, 1:]
         distances = distances[:, 1:]
         
         k_dists = distances[:, -1]
         
-        num_rows = A.shape[0]
+        num_rows = X.shape[0]
         
         ac_dist = np.zeros((num_rows, 1));
         for i in range(num_rows):
             neigh_ind = np.append(i, indices[i, :])
-            dists = squareform(pdist(A[neigh_ind, :]))
+            dists = squareform(pdist(X[neigh_ind, :]))
             sbn_path = [0]
             out = np.arange(1, self.k+1)  # out : the points "outside" the sbn_path
             sbn_cost = np.zeros((1, self.k))
@@ -88,9 +84,3 @@ class COF(BaseAnomalyDetector):
             cof[i] = self.k * ac_dist[i] / sum(ac_dist[indices[i]]);
         
         return(cof)
-    
-    def fit(self, A=None, y=None):
-        if self.k <= 0 or not isinstance(self.k, int):
-            raise ValueError("k needs to be a positive integer.")
-        self.A_ = A
-        return self
