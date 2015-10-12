@@ -27,6 +27,9 @@ class LoOP(BaseAnomalyDetector):
     def predict(self, A):
         """Calculate local outlier probability for each sample in A
 
+        Note: the local outlier probability is undefined for duplicated points
+        Duplicated points will be given assigned a value of nan.
+        
         Parameters
         ----------
         A : array-like, shape (n_samples, n_features)
@@ -47,12 +50,13 @@ class LoOP(BaseAnomalyDetector):
         prob_dist = np.sqrt((distances**2).mean(axis=1))
         
         plof = np.empty(num_rows)
-        nplof = 0.  # the std of plof assuming mean is zero
         for i in range(num_rows):
             plof[i] = prob_dist[i] / np.mean(prob_dist[indices[i]])
             plof[i] -= 1.0
-            nplof += plof[i]**2
-        nplof = self.lambda_ * np.sqrt(nplof / num_rows)
+        plof[np.isinf(plof)] = np.nan
+        
+        # nplof : the std of plof assuming mean is zero
+        nplof = self.lambda_ * np.sqrt(np.nanmean(plof**2))
         
         loop = erf(plof / nplof / np.sqrt(2)).clip(0)
 
