@@ -3,6 +3,8 @@ from CondensedDistanceMatrix import pdist_wrapper, CondensedDistanceMatrix
 from normalize_scores import normalize_scores, replace_invalid_scores
 from regularize_scores import regularize_scores
 
+from simple_timer import SimpleTimer, my_timer
+
 def unique_rows(ar, *args, **kwargs):
     '''
     Reference: http://stackoverflow.com/questions/8560440/removing-duplicate-columns-and-rows-from-a-numpy-2d-array
