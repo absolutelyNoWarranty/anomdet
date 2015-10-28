@@ -1,6 +1,8 @@
 import os
 import scipy.io as sio
 
+from ..base import OutlierDataset
+
 PATH_TO_DATA = os.path.join(os.path.dirname(__file__), 'one_class_datasets')
 
 def _load_oc_dataset(id_no):
@@ -24,7 +26,9 @@ def load_breast_benign():
         
         y : labels, 'True' if outlier   
     '''
-    return _load_oc_dataset(505)
+    X, y = _load_oc_dataset(505)
+    return OutlierDataset(X, y, name="breast", pos_class_name="malignant",
+                          neg_class_name="benign")
     
 def load_heart_healthy():
     '''
@@ -36,7 +40,9 @@ def load_heart_healthy():
         
         y : labels, True if outlier   
     '''
-    return _load_oc_dataset(507)
+    X, y = _load_oc_dataset(507)
+    return OutlierDataset(X, y, name="heart", pos_class_name="abnormal",
+                          neg_class_name="normal")
     
 def load_diabetes_absent():
     '''
@@ -52,8 +58,10 @@ def load_diabetes_absent():
     Original UCI Dataset:
         Pima Indians Diabetes Database
     '''
-    return _load_oc_dataset(518)
-
+    X, y = _load_oc_dataset(518)
+    return OutlierDataset(X, y, name="diabetes", pos_class_name="diabetes",
+                          neg_class_name="absent")
+    
 def load_arrhythmia_normal():
     '''
     Description:
@@ -68,8 +76,10 @@ def load_arrhythmia_normal():
     Original UCI Dataset:
         Arrhythmia
     '''
-    return _load_oc_dataset(514)
-    
+    X, y = _load_oc_dataset(514)
+    return OutlierDataset(X, y, name="arrhythmia", pos_class_name="arrhythmia",
+                          neg_class_name="normal")
+                          
 def load_hepatitis_normal():
     '''
     Description:
@@ -84,7 +94,9 @@ def load_hepatitis_normal():
     Original UCI Dataset:
         hepatitis
     '''
-    return _load_oc_dataset(516)
+    X, y = _load_oc_dataset(516)
+    return OutlierDataset(X, y, name="hepatitis", pos_class_name="die",
+                          neg_class_name="live")
     
 def load_colon_normal():
     '''
@@ -92,7 +104,9 @@ def load_colon_normal():
         X : data
             22 target objects (originally the 'normal tissue' class)
             40 outlier objects
-            908 features
+            1908 features
         y : labels, True if outlier
     '''
-    return _load_oc_dataset(570)
+    X, y = _load_oc_dataset(570)
+    return OutlierDataset(X, y, name="colon", pos_class_name="tumor",
+                          neg_class_name="normal")

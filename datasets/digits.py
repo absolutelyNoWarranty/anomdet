@@ -7,6 +7,7 @@ from sklearn.metrics import roc_auc_score
 from PIL import Image
 from sklearn.datasets.base import Bunch
 
+from .base import OutlierDataset
 from .utils import get_subsample_indices
 
 _digits_X, _digits_y = None, None
@@ -83,6 +84,96 @@ def load_digits_data(n_samples_per_class=None, random_state=None):
     
     return namedtuple('Dataset', ['X', 'y'])(X, y)
 
+def iter_digits_datasets(n_iter, n_samples_per_class, outlier_digits=None,
+                         normal_digits=None, random_state=None):
+    """Iterate over sampled digits datasets
+    Parameters
+    ----------
+    n_iter : int
+        how many datasets to create
+        
+    n_samples_per_class : int, list or dict
+        If
+        - int : Return `n_samples_per_class` number of digits for digits 0 to 9.
+        - list, len=10 : A list of the number of samples to return per digit
+                         class. `n_samples_per_class[i]` is the number of
+                         examples to return for digit i.
+        - dict : A dict specifying the number of samples for each digit
+            (digits not in the dict are will have 0 examples returned)
+    
+    outlier_digits : iterable, optional (default=None)
+        The digits to be labelled as outliers. Either this OR `normal_digits`
+        must be specified.
+        
+    normal_digits : iterable, optional (default=None)
+        The digits to be labelled as normal. Either this OR `outlier_digits`
+        must be specified.
+        
+    random_state : int, RandomState instance or None, optional (default=None)
+        If int, random_state is the seed used by the random number generator;
+        If RandomState instance, random_state is the random number generator;
+        If None, the random number generator is the RandomState instance used
+        by `np.random`.
+    """
+    
+    if not (outlier_digits is None) ^ (normal_digits is None):
+        raise ValueError("Please specify outlier_digits OR normal_digits")
+    
+    if isinstance(n_samples_per_class, int):
+        n_samples_per_class = [n_samples_per_class] * 10
+    
+    if isinstance(n_samples_per_class, list):
+        if not len(n_samples_per_class) == 10:
+            raise ValueError("Invalid length for n_samples_per_class")
+    
+    if isinstance(n_samples_per_class, dict):
+        tmp = []
+        for i in range(10):
+            tmp.append(n_samples_per_class.get(i, 0))
+        n_samples_per_class = tmp
+    
+    
+    classes_ = set(range(10))
+    if outlier_digits is None:
+        normal_digits = set(normal_digits)
+        if normal_digits.union(classes_) != classes_:
+            raise ValueError("Please specify outlier_digits OR normal_digits "
+                             "as a list of integers in the range 0-9")
+        outlier_digits = classes_.difference(set(normal_digits))
+ 
+    else:
+        outlier_digits = set(outlier_digits)
+        
+    if set(outlier_digits).union(classes_) != classes_:
+        raise ValueError("Please specify outlier_digits OR normal_digits "
+                         "as a list of integers in the range 0-9")
+
+    normal_digits = set(np.where(n_samples_per_class > 0)[0])
+    normal_digits.difference_update(outlier_digits)
+    
+    pos_class_name = "Outlier:" + \
+                     str(outlier_digits).replace("set(", "{").replace(")", "}")
+    neg_class_name = "Normal:" + \
+                     str(normal_digits).replace("set(", "{").replace(")", "}")
+    
+    outlier_digits = np.array(list(outlier_digits), dtype=int)
+    
+    random_state = check_random_state(random_state)
+    
+    all_X, all_y = load_digits_kaggle()
+
+    for _ in range(n_iter):
+        # This iteration's random state
+        rs_seed = random_state.randint(np.iinfo(np.int32).max)
+        ind = get_subsample_indices(range(10), all_y,
+                                    select=n_samples_per_class,
+                                    random_state=rs_seed)
+        
+        y = np.in1d(all_y[ind], outlier_digits)
+        
+        yield(OutlierDataset(all_X[ind], y=y,
+              name="Digits{seed:d}".format(seed=rs_seed),
+              pos_class_name=pos_class_name, neg_class_name=neg_class_name))
 
 def benchmark_digits(models, metric=None, n_iter=1, num_train_samples=1000, num_test_samples=1000, anomaly_ratio=0.05, random_state=None, single_digit_as_normal=True, mode="train_test", return_data=False):
     '''

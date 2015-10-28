@@ -8,6 +8,7 @@ import pandas as pd
 
 from sklearn.metrics import roc_auc_score
 
+from ..base import OutlierDataset
 from ...utils import replace_invalid_scores
 
 THIS_DIR = os.path.dirname(os.path.abspath(__file__)) # absolute path to directory this source file is in
@@ -109,6 +110,18 @@ def load_darpa_data(attack_type):
     X = X.iloc[:, :-1].values
     
     return namedtuple('KDDCUP1999_attack_%s' % attack_type , ['X', 'y'])(X, y)
+
+def iter_darpa_datasets():
+    for attack in ["back", "buffer_overflow", "ftp_write",
+               "guess_passwd", "imap", "ipsweep",
+               "land", "loadmodule", "multihop",
+               "perl", "phf", "portsweep", "rootkit",
+               "satan", "spy", "warezclient", "warezmaster"]:
+        dat = load_darpa_data(attack)
+        name_str = "KDDCUP99 (Attack Type: {attack})"
+        yield OutlierDataset(dat.X, y=dat.y,
+                             name=name_str.format(attack=attack),
+                             pos_class_name="intrusion")
     
 def benchmark_darpa(models, attack_types='all', metric=None):
     '''
