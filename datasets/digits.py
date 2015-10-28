@@ -127,29 +127,24 @@ def iter_digits_datasets(n_iter, n_samples_per_class, outlier_digits=None,
             raise ValueError("Invalid length for n_samples_per_class")
     
     if isinstance(n_samples_per_class, dict):
+        if set(n_samples_per_class.keys()).union(set(range(10))) != set(range(10)):
+            raise ValueError("Please specify outlier_digits OR normal_digits "
+                             "as a list of integers in the range 0-9")         
+    
         tmp = []
         for i in range(10):
             tmp.append(n_samples_per_class.get(i, 0))
         n_samples_per_class = tmp
     
-    
-    classes_ = set(range(10))
+    classes_ = set([i for i in range(10) if n_samples_per_class[i] > 0])
     if outlier_digits is None:
         normal_digits = set(normal_digits)
-        if normal_digits.union(classes_) != classes_:
-            raise ValueError("Please specify outlier_digits OR normal_digits "
-                             "as a list of integers in the range 0-9")
-        outlier_digits = classes_.difference(set(normal_digits))
+        outlier_digits = classes_.difference(normal_digits)
  
     else:
         outlier_digits = set(outlier_digits)
-        
-    if set(outlier_digits).union(classes_) != classes_:
-        raise ValueError("Please specify outlier_digits OR normal_digits "
-                         "as a list of integers in the range 0-9")
+        normal_digits = classes_.difference(outlier_digits)
 
-    normal_digits = set(np.where(n_samples_per_class > 0)[0])
-    normal_digits.difference_update(outlier_digits)
     
     pos_class_name = "Outlier:" + \
                      str(outlier_digits).replace("set(", "{").replace(")", "}")
