@@ -43,7 +43,7 @@ class OversamplingPCA(BaseAnomalyDetector):
         self.oversampling_ratio = oversampling_ratio
     
     def predict(self, A):
-        """Calculate local outlier factor for each sample in A
+        """Calculate outlier score for each sample in A
 
         Parameters
         ----------
