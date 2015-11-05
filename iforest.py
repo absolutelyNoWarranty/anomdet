@@ -3,7 +3,7 @@
 from .base import BaseAnomalyDetector
 
 import numpy as np
-from sklearn.utils import check_random_state
+from .utils import maybe_default_random_state
 
 class IForest(BaseAnomalyDetector):
     """Isolation Forest
@@ -56,7 +56,7 @@ class IForest(BaseAnomalyDetector):
         self.random_state = random_state
         
     def fit(self, X, y=None):
-        random_state = check_random_state(self.random_state)
+        random_state = maybe_default_random_state(self.random_state)
         
         m = X.shape[0]
         if self.subsample_size <= 1.0:

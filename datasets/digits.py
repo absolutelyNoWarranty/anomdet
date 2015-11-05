@@ -1,11 +1,12 @@
 import os
 from collections import namedtuple, defaultdict, OrderedDict
 import numpy as np
-from sklearn.utils import check_random_state
 import matplotlib.pyplot as plt
 from sklearn.metrics import roc_auc_score
 from PIL import Image
 from sklearn.datasets.base import Bunch
+
+from ..utils import maybe_default_random_state
 
 from .base import OutlierDataset
 from .utils import get_subsample_indices
@@ -61,7 +62,7 @@ def load_digits_data(n_samples_per_class=None, random_state=None):
     Output: Data X and labels y
     '''
     
-    random_state = check_random_state(random_state)
+    random_state = maybe_default_random_state(random_state)
     
     if n_samples_per_class is None:
         n_samples_per_class = [1] * 10
@@ -153,7 +154,7 @@ def iter_digits_datasets(n_iter, n_samples_per_class, outlier_digits=None,
     
     outlier_digits = np.array(list(outlier_digits), dtype=int)
     
-    random_state = check_random_state(random_state)
+    random_state = maybe_default_random_state(random_state)
     
     all_X, all_y = load_digits_kaggle()
 
@@ -195,11 +196,11 @@ def benchmark_digits(models, metric=None, n_iter=1, num_train_samples=1000, num_
     if metric is None:
         metric = roc_auc_score
         
-    random_state = check_random_state(random_state)
+    random_state = maybe_default_random_state(random_state)
     
     #Random states for selecting train/test datasets
-    rs_train = check_random_state(random_state.randint(1000))
-    rs_test = check_random_state(random_state.randint(1000))
+    rs_train = maybe_default_random_state(random_state.randint(1000))
+    rs_test = maybe_default_random_state(random_state.randint(1000))
     
     for _, model in models.iteritems():
         seed = random_state.randint(1000)
@@ -318,9 +319,9 @@ def benchmark_digits(models, metric=None, n_iter=1, num_train_samples=1000, num_
     
 def benchmark_digits1(model, metric, n_iter=1, num_train_samples=1000, num_test_samples=1000, anomaly_ratio=0.05, random_state=None):
     
-    random_state = check_random_state(random_state)
+    random_state = maybe_default_random_state(random_state)
     
-    model.random_state = check_random_state(random_state.randint(1000))
+    model.random_state = maybe_default_random_state(random_state.randint(1000))
     
     n_train_normal = int(num_train_samples * (1.0 - anomaly_ratio))
     n_train_anomaly = num_train_samples - n_train_normal
@@ -364,7 +365,7 @@ def benchmark_digits1(model, metric, n_iter=1, num_train_samples=1000, num_test_
             
 def benchmark_digits2(model, metric, n_iter=1, num_train_samples=1000, num_test_samples=1000, anomaly_ratio=0.05, random_state=None):
     
-    random_state = check_random_state(random_state)
+    random_state = maybe_default_random_state(random_state)
     
     n_train_normal = int(num_train_samples * (1.0 - anomaly_ratio))
     n_train_anomaly = num_train_samples - n_train_normal

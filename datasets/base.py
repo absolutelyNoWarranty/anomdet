@@ -1,15 +1,14 @@
 import numpy as np
+from sklearn.metrics import roc_auc_score
 
 from ..utils.dataset_info import DatasetInfo
-from sklearn.metrics import roc_auc_score
 from ..utils.simple_timer import SimpleTimer
-from sklearn.utils import check_random_state
+from ..utils import unique_rows, maybe_default_random_state
 
-from ..utils import unique_rows
-
+from .utils import get_subsample_indices
 
 def iter_sampled_outliers(self, outlier_ratio=0.05, random_state=None, overlap=True):
-    random_state = check_random_state(random_state)
+    random_state = maybe_default_random_state(random_state)
     num_pos_sample = int(np.ceil(outlier_ratio * len(self.y)))
     
     # shuffle the pos class indices
