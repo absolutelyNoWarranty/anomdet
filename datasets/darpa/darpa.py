@@ -109,7 +109,8 @@ def load_darpa_data(attack_type):
     y = (X.iloc[:, -1] != "normal.").values
     X = X.iloc[:, :-1].values
     
-    return namedtuple('KDDCUP1999_attack_%s' % attack_type , ['X', 'y'])(X, y)
+    name_str = "KDDCUP99 (Attack Type: {attack})".format(attack=attack_type)
+    return OutlierDataset(X, y=y, name=name_str, pos_class_name="intrusion")
 
 def iter_darpa_datasets():
     for attack in ["back", "buffer_overflow", "ftp_write",
