@@ -1,5 +1,7 @@
+from collections import namedtuple
+
 import numpy as np
-from sklearn.metrics import roc_auc_score
+from sklearn.metrics import roc_auc_score, precision_score, recall_score, f1_score
 
 from ..utils.dataset_info import DatasetInfo
 from ..utils.simple_timer import SimpleTimer
@@ -90,18 +92,70 @@ class OutlierDataset(object):
         if not is_ok:
             _, self.unique_ind = unique_rows(self._X, return_index=True)
     
-    def benchmark(self, thingy):
+    def benchmark(self, thingy, k=None, threshold=None, verbose=False):
         '''
         Given a `thingy`, benchmark it on this dataset by calling the thingy's
         predict.
+        
+        Parameters
+        ----------
+        thingy : something that can predict outlier scores
+        
+        k : float or int, optional, (default=None)
+            The top k objects to consider when sorted by outlier scores
+
+        threshold : float or int, optional, (default=None)
+            The threshold for outlier scores above which an item is considered
+            an outlier
+        
+        verbose : bool, (default=False)
+            Whether to print stuff while running.
+        
+        Returns
+        -------
+        If k and threshold are both None:
+        auc : The auc
+        
+        Or, if either k OR threshold is provided        
+        result : A named tuple of the auc, precision, recall, and f1_score
+                 where precision, recall, and f1_score are calculated assuming
+                 objects which are in the top-k OR are above the threshold are
+                 outliers (positive) and others are not (negative).
+            
         '''
-        self.timer.tic()
-        preds = thingy.fit(self.data).predict(self.data)
-        self.timer.toc()
-        print self.timer
-        auc = self.evaluate(preds)
-        print auc
-        return auc
+        
+        evaluation_funcs = dict(roc_auc=roc_auc_score,
+                                precision=precision_score,
+                                recall=recall_score,
+                                f1=f1_score)
+                                
+        if verbose: self.timer.tic()
+        outlier_scores = thingy.fit(self.data).predict(self.data)
+        if verbose: self.timer.toc(); print self.timer
+        auc = self.evaluate(outlier_scores)
+        
+        if k is None and threshold is None:
+            if verbose: print auc
+            return auc
+            
+        elif k is not None and threshold is not None:
+            raise ValueError("k and threshold both set")
+        elif k is not None:
+            top_ind = np.argsort(outlier_scores)[-k:]
+        else:
+            top_ind = np.where(outlier_scores >= threshold)[0]
+
+        preds = np.zeros_like(outlier_scores)
+        preds[top_ind] = 1
+        
+        MetricsBundle = namedtuple('Metrics', ['auc', 'precision', 'recall', 'f1'])
+        result = MetricsBundle(auc=auc,
+                               precision=precision_score(self.y, preds),
+                               recall=recall_score(self.y, preds),
+                               f1=f1_score(self.y, preds))
+                               
+        if verbose: print result
+        return result
         
     def evaluate(self, preds):
         '''
