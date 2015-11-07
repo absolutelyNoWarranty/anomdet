@@ -206,3 +206,7 @@ dumdum = OutlierDataset(np.array([[1., 0.5],
                         np.array([1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
                                  dtype=bool),
                         name="a little dummy")
+                        
+bigdumdum = OutlierDataset(np.random.rand(150,5),
+                           np.asarray(np.round(np.random.rand(150)), dtype=bool),
+                           name="a big dummy")
