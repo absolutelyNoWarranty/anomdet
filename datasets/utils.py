@@ -17,6 +17,10 @@ def get_subsample_indices(classes, y, select, replace=False, random_state=None):
         
     `select` : array-like, shape(`classes`, ) 
         The number to select from each class.
+        Elements can be:
+            int, the exact number
+            float, percentage
+            "all", all
         
     `replace` : boolean, optional (default=False)
         Whether to sample with replacement or without.
@@ -38,6 +42,15 @@ def get_subsample_indices(classes, y, select, replace=False, random_state=None):
     result = []
     for num_to_select, class_ in zip(select, classes):
         indices = np.where(y==class_)[0]
+        
+        if num_to_select == "all":
+            result.append(indices)
+            continue
+            
+        if 0 <= num_to_select < 1.0:
+            num_to_select = int(np.round(num_to_select * len(indices)))
+        else:
+            pass        
         result.append(random_state.choice(indices, num_to_select, replace=replace))
     result = np.concatenate(result)
     
