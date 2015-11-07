@@ -157,6 +157,18 @@ class OutlierDataset(object):
         if verbose: print result
         return result
         
+    def get_subsampled(self, anomaly_ratio=0.05, random_state=None):
+        '''
+        Return an OutlierDataset with
+        '''
+        rs = maybe_default_random_state(random_state)
+        select = ["all", anomaly_ratio]
+        ind =  get_subsample_indices([False, True], self.y, select=select,
+                                     replace=False, random_state=rs)
+        return OutlierDataset(self.X[ind], self.y[ind], self.name,
+                              self.pos_class_name, self.neg_class_name,
+                              self.duplicates_allowed)
+    
     def evaluate(self, preds):
         '''
         Evaluate `preds` on this OutlierDataset using the AUC of the ROC curve.
