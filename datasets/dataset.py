@@ -94,7 +94,30 @@ class Dataset(object):
             raise ValueError("Unknown class.")
             
         return [self._to_class_repr(name) for name in names]
-            
+    
+    def as_outlier_dataset(self, normal_classes=None, outlier_classes=None):
+        '''
+        Return this dataset as an OutlierDataset
+        
+        Parameters
+        ----------
+        normal_classes
+        outlier_classes
+        '''
+      
+        if normal_classes is not None:
+            if outlier_classes is not None:
+                raise ValueError("Both normal and outlier classes are given?")
+            normal_classes = self._to_class_repr(normal_classes)
+            outlier_classes = list(set(self.classes_.keys()).difference(set(normal_classes)))
+        else:
+            if outlier_classes is None:
+                raise ValueError("Please provide normal or outlier classes")
+            outlier_classes = self._to_class_repr(outlier_classes)
+
+        y = np.in1d(self.y, outlier_classes) 
+        return OutlierDataset(self.X, y)
+    
     def create_outlier_dataset(self, n_to_select=None, normal_classes=None,
                                outlier_classes=None, replace=False,
                                random_state=None):
