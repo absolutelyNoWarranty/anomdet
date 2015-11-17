@@ -6,6 +6,7 @@ from regularize_scores import regularize_scores
 from sklearn.utils import check_random_state
 
 from simple_timer import SimpleTimer, my_timer
+from .rankings import scores_to_ranks, rank_distances
 
 DEFAULT_SEED = 888
 
