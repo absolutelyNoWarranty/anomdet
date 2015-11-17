@@ -7,7 +7,7 @@ from sklearn.utils.testing import assert_equal
 from sklearn.utils.testing import assert_raises
 from sklearn.utils.testing import assert_greater
 
-from ..knn import KNN
+from ..neighborhood import KNN
 
 def test_knn():
     '''

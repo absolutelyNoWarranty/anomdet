@@ -1,5 +1,5 @@
 from abod import ABOD
-from lof import LOF, COF
+from neighborhood import LOF, COF
 
 from kse import KSE
 

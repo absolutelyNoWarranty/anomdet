@@ -9,7 +9,7 @@ from sklearn.utils.testing import assert_equal
 from sklearn.utils.testing import assert_raises
 from sklearn.utils.testing import assert_greater
 
-from ..lof import LOF
+from ..neighborhood import LOF
 
 def test_lof():
     '''

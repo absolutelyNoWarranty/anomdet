@@ -9,7 +9,7 @@ from sklearn.utils.testing import assert_equal
 from sklearn.utils.testing import assert_raises
 from sklearn.utils.testing import assert_greater
 
-from ..lof import COF
+from ..neighborhood import COF
 
 def test_cof():
     k=7

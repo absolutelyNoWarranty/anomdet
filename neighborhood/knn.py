@@ -3,8 +3,8 @@
 import numpy as np
 from sklearn.neighbors import NearestNeighbors
 
-from .base import BaseAnomalyDetector
-from .utils import check_n_neighbors
+from ..base import BaseAnomalyDetector
+from ..utils import check_n_neighbors
 
 
 class KNN(BaseAnomalyDetector):
