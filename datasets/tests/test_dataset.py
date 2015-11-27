@@ -7,8 +7,7 @@ from sklearn.utils.testing import assert_equal
 from sklearn.utils.testing import assert_raises
 from sklearn.utils.testing import assert_greater
 
-from ..dataset import Dataset
-from ..base import OutlierDataset
+from ..base import Dataset, OutlierDataset
 
 X = np.array([
     [1, 1],

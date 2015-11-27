@@ -4,7 +4,7 @@
 import os
 import numpy as np
 
-from ..dataset import Dataset
+from ...datasets import Dataset
 
 # absolute path to directory this source file is in
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))

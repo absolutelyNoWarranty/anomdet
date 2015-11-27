@@ -6,7 +6,7 @@ import numpy as np
 from scipy.io.arff import loadarff
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 
-from ..dataset import Dataset
+from ...datasets import Dataset
 
 # absolute path to directory this source file is in
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))

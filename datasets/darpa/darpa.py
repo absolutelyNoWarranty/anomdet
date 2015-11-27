@@ -8,7 +8,7 @@ import pandas as pd
 
 from sklearn.metrics import roc_auc_score
 
-from ..base import OutlierDataset
+from ...datasets import OutlierDataset
 from ...utils import replace_invalid_scores
 
 THIS_DIR = os.path.dirname(os.path.abspath(__file__)) # absolute path to directory this source file is in
