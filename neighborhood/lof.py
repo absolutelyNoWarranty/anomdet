@@ -95,3 +95,51 @@ class LOF(BaseAnomalyDetector):
             lof[i] = np.sum(lrd_value[indices[i]]) / lrd_value[i] / self.k
         
         return(lof)
+        
+    def range_predict(self, X, k_range):
+        """Calculate local outlier factor for each sample in X over a range of
+           k's
+
+        Parameters
+        ----------
+        X : array-like, shape (n_samples, n_features)
+            New data to predict.
+
+        k_range : iterable
+            
+        Returns
+        -------
+        lof : array, shape (n_samples,)
+            Local outlier factor for each sample.
+        """
+        #if not self.X_:
+        #    self.fit(X)
+        
+        k_range = sorted(list(k_range))
+        k_max = k_range[-1]
+        
+        nbrs = NearestNeighbors(n_neighbors=k_max+1).fit(X)
+        distances_, indices_ = nbrs.kneighbors(X)
+        
+        lofs = np.empty((X.shape[0], len(k_range)))
+        for e, k in enumerate(k_range):
+            indices = indices_[:, 1:(k+1)]
+            distances = distances_[:, 1:(k+1)]
+        
+            k_dists = distances[:, -1]
+            
+            num_rows = X.shape[0]
+            
+            lrd_value = np.zeros(num_rows)
+            for i in xrange(num_rows):
+                temp = X[i, :] - X[indices[i], :]
+                temp = np.sqrt(np.sum(temp**2, 1))
+                reachability_dists = np.max(np.vstack([temp, k_dists[indices[i]]]), 0)
+                lrd_value[i] = k/sum(reachability_dists);
+            
+            lof = np.zeros(num_rows)
+            for i in xrange(num_rows):
+                lof[i] = np.sum(lrd_value[indices[i]]) / lrd_value[i] / k
+            
+            lofs[:, e] = lof
+        return(lofs)

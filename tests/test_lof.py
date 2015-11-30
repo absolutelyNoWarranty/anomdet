@@ -84,3 +84,13 @@ def test_lof2():
       np.array([2.1746, 2.4809, 0.9912, 2.4809, 0.9167, 1.0952, 1.0952, 0.9167]))
     
     assert_raises(InputError, LOF, k=8)
+    
+def test_lof_range_predict():
+    '''
+    Test LOF's k range_predict
+    '''
+    X = np.random.RandomState(0).rand(200, 3)
+    lof_over_range = LOF().range_predict(X, k_range=range(5, 50))
+    for j, k in enumerate(range(5, 50)):
+        lof = LOF(k=k).fit().predict(X)
+        assert_array_equal(lof_over_range[:, j], lof)
