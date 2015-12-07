@@ -2,16 +2,17 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 
-from ...datasets import Dataset
+from .base import Dataset
 
 # absolute path to directory this source file is in
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
+TRAIN = os.path.join(THIS_DIR, "data", "pendigits", "pendigits.tra")
 
 def _load_pendigits():
     '''
     Original dataset: UCI Pendigits: "pendigits.tra"
     '''
-    X = np.loadtxt(os.path.join(THIS_DIR, "pendigits.tra"), delimiter=",")
+    X = np.loadtxt(TRAIN, delimiter=",")
     y = X[:, -1]
     X = X[:, :-1].astype(int)
     

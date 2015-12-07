@@ -4,12 +4,12 @@
 import os
 import numpy as np
 
-from ...datasets import Dataset
+from .base import Dataset
 
 # absolute path to directory this source file is in
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
-TRAIN = os.path.join(THIS_DIR, "training.csv")
-TEST = os.path.join(THIS_DIR, "testing.csv")
+TRAIN = os.path.join(THIS_DIR, "data", "forest_type", "training.csv")
+TEST = os.path.join(THIS_DIR, "data", "forest_type", "testing.csv")
 
 def _load_forest_type():
     '''

@@ -4,7 +4,7 @@ from simple import load_square, load_square_noise, load_spiral, load_sine_noise
 from simple import load_ring_line_square
 
 from pendigits import load_pendigits
-from forest_type import load_forest_type
+from .forest_type import load_forest_type
 from thoraric_surgery import load_thoraric_surgery
 
 from .uci_one_class import load_breast_benign, load_heart_healthy
