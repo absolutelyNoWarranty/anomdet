@@ -94,3 +94,13 @@ def test_lof_range_predict():
     for j, k in enumerate(range(5, 50)):
         lof = LOF(k=k).fit().predict(X)
         assert_array_equal(lof_over_range[:, j], lof)
+        
+def test_lof_range_predict_with_more_complex_range():
+    '''
+    Test LOF's k range_predict
+    '''
+    X = np.random.RandomState(0).rand(200, 3)
+    lof_over_range = LOF().range_predict(X, k_range=range(5, 50, 3))
+    for j, k in enumerate(range(5, 50, 3)):
+        lof = LOF(k=k).fit().predict(X)
+        assert_array_equal(lof_over_range[:, j], lof)
