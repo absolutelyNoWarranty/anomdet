@@ -358,6 +358,15 @@ class OutlierDataset(Dataset):
         if verbose: print result
         return result
     
+    def iter_individual(self):
+        pos_ind = np.where(np.logical_not(self.y))[0]
+        out_ind = np.where(self.y)[0]
+        for i in out_ind:
+            ind = np.append(pos_ind, i)
+            yield OutlierDataset(self.X[ind], self.y[ind], self.name,
+                                  self.pos_class_name, self.neg_class_name,
+                                  self.duplicates_allowed)
+    
     def benchmark_individual_outliers(self, thingy, k=10, threshold=None, verbose=False):
         '''
         Given a `thingy`, benchmark it on this dataset by calling the thingy's
@@ -397,7 +406,8 @@ class OutlierDataset(Dataset):
         Return an OutlierDataset with
         '''
         rs = maybe_default_random_state(random_state)
-        select = ["all", anomaly_ratio]
+        n_nonout = len(self.y)-sum(self.y)
+        select = ["all", int(anomaly_ratio*n_nonout)]
         ind =  get_subsample_indices([False, True], self.y, select=select,
                                      replace=False, random_state=rs)
         return OutlierDataset(self.X[ind], self.y[ind], self.name,

@@ -4,14 +4,18 @@ import urllib
 import gzip
 from collections import defaultdict, namedtuple
 
+import numpy as np
 import pandas as pd
 
 from sklearn.metrics import roc_auc_score
 
-from ...datasets import OutlierDataset
-from ...utils import replace_invalid_scores
+from .base import OutlierDataset
+from ..utils import replace_invalid_scores
 
 THIS_DIR = os.path.dirname(os.path.abspath(__file__)) # absolute path to directory this source file is in
+DARPA_DATA_DIR = os.path.join(THIS_DIR, "data", "darpa")
+TRAIN = os.path.join(THIS_DIR, "data", "darpa", "kddcup.data_10_percent.gz")
+TEST = os.path.join(THIS_DIR, "data", "darpa", "corrected.gz")
 
 column_names = ["duration",
                 "protocol_type",
@@ -55,7 +59,7 @@ column_names = ["duration",
                 "dst_host_rerror_rate",
                 "dst_host_srv_rerror_rate",
                 "attack_label"]
-
+                
 def download_and_split(filedir=THIS_DIR):
     '''
     Downloads the DARPA data if not found and splits by attack type.
@@ -90,26 +94,60 @@ def download_and_split(filedir=THIS_DIR):
     
     print "Done!"
 
-def load_darpa_data(attack_type):
+def load_darpa_data(attack_types='all_except_neptune', use_contest_train=True, return_df=False):
     '''
     Loads DARPA data.
     
     Parameters
     ----------
-    attack_type : {"back", "buffer_overflow", "ftp_write",
-                  "guess_passwd", "imap", "ipsweep",
-                  "land", "loadmodule", "multihop",
-                  "perl", "phf", "portsweep", "rootkit",
-                  "satan", "spy", "warezclient", "warezmaster"}
-        The attack type to load. (Normal data is the same for all.)
+    attack_type : str or list of str, optional, (default='all_except_neptune')
+        Which attack types to include. If 'all_except_neptune', all attacks
+        except 'neptune'. If 'all', all the attacks are included.
+        
+    use_contest_train : bool, optional (default=True)
+        Whether to use load the training or testing data from the contest.
     
+    return_df : bool, optional (default=False)
+        If true, return a pandas DataFrame.
     '''
+    f = gzip.open(TRAIN, "r") if use_contest_train else gzip.open(TEST, "r")    
+    df = pd.read_csv(f, names=column_names, header=None)
+    f.close()
     
-    X = pd.read_csv(os.path.join(THIS_DIR, "kddcup10percent-tcp-attack_%s.csv" % attack_type))
+    if return_df:
+        return df
+        
+    df_tcp = df.loc[df.protocol_type == 'tcp']
+
+    attack_labels = df_tcp.attack_label.unique().tolist()
+    
+    if attack_types == 'all':
+        func = lambda x: True
+    elif attack_types is 'all_except_neptune':
+        func = lambda x: x != 'neptune.'
+    else:
+        if isinstance(attack_types, str):     # in dataframe attack_label's all 
+            attack_types = [attack_types + '.'] # have an extra '.' at the end
+        else:
+            attack_types = map(lambda s: s+'.', attack_types)
+    
+        func = lambda x: x in attack_types or x == 'normal.'
+    
+    attack_labels = df_tcp.attack_label.unique().tolist()
+    
+    if not np.any(map(func, attack_labels)):
+        raise ValueError("The provided attack types are not in the dataset!")
+    
+    # remove string columns 1, 2, and 3
+    df_tcp = df_tcp.iloc[:, [0]+range(4, df_tcp.shape[1])]
+    
+    X = df_tcp.loc[df_tcp.attack_label.map(func)]
     y = (X.iloc[:, -1] != "normal.").values
     X = X.iloc[:, :-1].values
     
-    name_str = "KDDCUP99 (Attack Type: {attack})".format(attack=attack_type)
+    attack_types_str = attack_types if isinstance(attack_types, str) else ",".join(attack_types)
+    
+    name_str = "KDDCUP99 - {train_or_test} (Attack Types: {attack})".format(train_or_test="train" if use_contest_train else "test", attack=attack_types)
     return OutlierDataset(X, y=y, name=name_str, pos_class_name="intrusion")
 
 def iter_darpa_datasets():

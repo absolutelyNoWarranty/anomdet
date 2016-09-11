@@ -41,8 +41,14 @@ def rank_distances(ranks, k=0.25):
     # Only calculate for the top 25% ranks
     k = int(np.round(k*ranks.shape[0]))
     
+    #def _metric(r1, r2):
+    #    return np.abs(np.argsort(r1) - np.argsort(r2))[:k].sum()
     def _metric(r1, r2):
-        return np.abs(np.argsort(r1) - np.argsort(r2))[:k].sum()
+        # take union of top k
+        top_r1 = np.argsort(r1)[:k]
+        top_r2 = np.argsort(r2)[:k]
         
+        ind = list(set(top_r1).union(set(top_r2)))
+        return np.abs(r1[ind] - r2[ind]).mean()
             
     return pairwise_distances(X=ranks.T, metric=_metric)

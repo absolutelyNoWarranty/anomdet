@@ -63,10 +63,10 @@ def replace_invalid_scores(X, nan_to='avg', inf_to='avg', neg_inf=True):
         return _replace_invalid_scores(X, nan_to=nan_to, inf_to=inf_to)
     
     if type(nan_to) != list:
-        nan_to = [nan_to]*X.shape[0]
+        nan_to = [nan_to]*X.shape[1]
         
     if type(inf_to) != list:
-        inf_to = [inf_to]*X.shape[0]
+        inf_to = [inf_to]*X.shape[1]
     
     scores = np.empty(X.shape)
     for j in xrange(X.shape[1]):
