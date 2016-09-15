@@ -7,4 +7,4 @@ from oversampling_pca import OversamplingPCA
 
 from iforest import IForest
 
-from parzen_window import ParzenWindow
+from density_estimation import ParzenWindow
